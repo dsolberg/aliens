@@ -6,11 +6,30 @@ import (
 	"log"
 	"os"
 	"strings"
+	"flag"
+	"strconv"
 )
 
 var city_map = map[string]map[string]string{}
 
-func loadcitymap() {
+var total_aliens int
+
+var aliens = map[string]string{}
+
+//type alien struct {
+//	id string
+//	city string
+//}
+
+func gatherCliParameters() {
+
+	// Import the CLI parameters
+	flag.IntVar(&total_aliens, "aliens", 10000, "Total aliens to create")
+	flag.Parse()
+}
+
+
+func loadCityMap() {
 
 	// Open and read city map line at a time
 	file, err := os.Open("maps/citymap.txt")
@@ -62,7 +81,20 @@ func loadcitymap() {
 }
 
 
+func createAliens() {
+
+	for i := 0; i < total_aliens; i++ {
+	    aliens["Bob" + strconv.Itoa(i)] = "City"
+	}
+}
+
+
 func main() {
-	loadcitymap()
-	fmt.Println(city_map)
+
+	gatherCliParameters()
+	loadCityMap()
+	//fmt.Println(city_map)
+    createAliens()
+    fmt.Println(aliens["Bob2"])
+
 }

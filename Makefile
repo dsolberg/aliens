@@ -1,5 +1,5 @@
 run:
-	go run main.go
+	go run main.go -aliens=10000
 
 build:
 	go clean
