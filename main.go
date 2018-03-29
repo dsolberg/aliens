@@ -14,11 +14,15 @@ import (
 
 const alienName = "Bob"
 
+const moveLimit = 10000
+
 var city_map = map[string]map[string]string{}
 
-var total_aliens int
-
 var aliens = map[string]string{}
+
+var dead_aliens int
+
+var total_aliens int
 
 //type alien struct {
 //	id string
@@ -118,6 +122,7 @@ func moveAliens() {
 
 func fightAliens() {
 
+	dead_aliens = 0
 	// Loop for first alien to compare
 	for alien1 := 0; alien1 < total_aliens; alien1++ {
 
@@ -152,6 +157,7 @@ func fightAliens() {
 		} else {
 
 			// Alien in blown up city - presumed dead - collatoral damage
+			dead_aliens += 1
 			aliens[alienName + strconv.Itoa(alien1)] = "dead"
 			fmt.Println("	- Poor " + alienName + strconv.Itoa(alien1) + " died in the crossfire")
 		}
@@ -167,11 +173,15 @@ func main() {
     moveAliens()
 
     // Begin alien invasion
-    for tick := 1; tick < 2; tick++ {
-    	fmt.Println(tick)
+    for tick := 0; tick < moveLimit; tick++ {
+    	fmt.Println(tick + 1)
 		moveAliens()
     	fightAliens()
-    	time.Sleep(2 * time.Second)
+    	if dead_aliens == total_aliens {
+    		fmt.Println("All aliens are dead.")
+    		break
+    	}
+    	time.Sleep(1 * time.Second)
     }
     //fmt.Println(aliens)
 
