@@ -8,6 +8,7 @@ import (
 	"strings"
 	"flag"
 	"strconv"
+	"math/rand"
 )
 
 var city_map = map[string]map[string]string{}
@@ -91,13 +92,26 @@ func createAliens() {
 	}
 }
 
+func moveAliens() {
+
+	// Set direction map to map direction to random number
+	directions := map[int]string{1: "north", 2: "south", 3: "east", 4: "west"}
+
+	// Cycle through total aliens
+	for i := 0; i < total_aliens; i++ {
+
+		// Change existing city associated with each alien to a random city
+		aliens["Bob" + strconv.Itoa(i)] = city_map[aliens["Bob" + strconv.Itoa(i)]][directions[rand.Intn(4)]]
+	}
+}
+
 
 func main() {
 
 	gatherCliParameters()
 	loadCityMap()
-	//fmt.Println(city_map)
     createAliens()
+    moveAliens()
     fmt.Println(aliens["Bob2"])
 
 }
