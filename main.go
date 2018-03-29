@@ -9,7 +9,10 @@ import (
 	"flag"
 	"strconv"
 	"math/rand"
+    "time"
 )
+
+const alienName = "Bob"
 
 var city_map = map[string]map[string]string{}
 
@@ -87,21 +90,68 @@ func createAliens() {
 		for city, _ := range city_map {
 
 			// Assign each alien a city from the map which is naturally random
-			aliens["Bob" + strconv.Itoa(i)] = city
+			aliens[alienName + strconv.Itoa(i)] = city
 		}
 	}
 }
 
 func moveAliens() {
 
+	var randdir int
+
 	// Set direction map to map direction to random number
 	directions := map[int]string{1: "north", 2: "south", 3: "east", 4: "west"}
 
 	// Cycle through total aliens
 	for i := 0; i < total_aliens; i++ {
+		randdir = rand.Intn(4)
 
-		// Change existing city associated with each alien to a random city
-		aliens["Bob" + strconv.Itoa(i)] = city_map[aliens["Bob" + strconv.Itoa(i)]][directions[rand.Intn(4)]]
+		// Check if destination city exists before moving
+		if city_map[city_map[aliens[alienName + strconv.Itoa(i)]][directions[randdir]]] == nil {
+
+			// Change existing city associated with each alien to a random city
+			aliens[alienName + strconv.Itoa(i)] = city_map[aliens[alienName + strconv.Itoa(i)]][directions[randdir]]
+		}
+		// TODO - Try to move to other non-destroyed city
+	}
+}
+
+func fightAliens() {
+
+	// Loop for first alien to compare
+	for alien1 := 0; alien1 < total_aliens; alien1++ {
+
+		// Check to see if city is blown up 
+		if city_map[aliens[alienName + strconv.Itoa(alien1)]] != nil {
+
+			// Loop for second alien to compare
+			for alien2:= 0; alien2 < total_aliens; alien2++ {
+
+				// Check if alien is dead
+				if aliens[alienName + strconv.Itoa(alien1)] != "dead" {
+					
+					// Check if alien is being compared against itself
+					if alien1 != alien2 {
+
+						// Check if aliens are in the same city
+						if aliens[alienName + strconv.Itoa(alien1)] == aliens[alienName + strconv.Itoa(alien2)] {
+							fmt.Println("Match: " + strconv.Itoa(alien1) + " vs " + strconv.Itoa(alien2) + " in " + aliens[alienName + strconv.Itoa(alien1)] )
+							
+							// Aliens kill eachother - pew pew
+							aliens[alienName + strconv.Itoa(alien1)] = "dead"
+							aliens[alienName + strconv.Itoa(alien2)] = "dead"
+
+							// Blow up city
+							delete(city_map,aliens[alienName + strconv.Itoa(alien1)])
+						}
+					}
+				}	
+			}
+		} else {
+
+			// Alien in blown up city - assumed dead - collatoral damage
+			aliens[alienName + strconv.Itoa(alien1)] = "dead"
+		}
 	}
 }
 
@@ -112,6 +162,14 @@ func main() {
 	loadCityMap()
     createAliens()
     moveAliens()
-    fmt.Println(aliens["Bob2"])
+
+    // Begin alien invasion
+    for tick := 0; tick < 1; tick++ {
+    	fmt.Println(tick)
+		moveAliens()
+    	fightAliens()
+    	time.Sleep(2 * time.Second)
+    }
+    fmt.Println(aliens)
 
 }
