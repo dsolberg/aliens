@@ -72,19 +72,22 @@ func loadCityMap() {
 
         	city_map[city[0]][direction] = endpoint
 
-			_ = endpoint
-        	_ = direction
-        	_ = directionsplit
-       
-        }
+		}
     }
 }
 
 
 func createAliens() {
 
+    // Cycle through the total number of aliens
 	for i := 0; i < total_aliens; i++ {
-	    aliens["Bob" + strconv.Itoa(i)] = "City"
+
+		// Cycle through city map to find cities for aliens to blow up
+		for city, _ := range city_map {
+
+			// Assign each alien a city from the map which is naturally random
+			aliens["Bob" + strconv.Itoa(i)] = city
+		}
 	}
 }
 
