@@ -1,4 +1,21 @@
-# Alien Invasion - If only we had nukes
+# Alien Invasion
+
+### Main features covered for v1.0.1
+#1
+#2
+#3
+#4
+#5
+#6
+#7
+#8
+#9
+#10
+#11
+#12
+#13
+#14
+#15
 
 ## Minimum requirements
 
@@ -10,15 +27,32 @@ Go version | Go1.9 or higher
 
 To install from source:
 
-`go get -u github.com/dsolberg/aliens`
+```
+go get -u github.com/dsolberg/aliens
+```
+
+To get to the local code:
+```
+cd $GOPATH/src/github.com/dsolberg/aliens
+git checkout tags/1.0.1
+```
 
 To execute with the default parameters of 2000 aliens run:
 
-`make`
+```
+make
+```
 
 To execute with non-standard parameters run:
 
-`go run main.go -aliens=<number of aliens>`
+```
+go run main.go -aliens=<number of aliens>
+```
+
+To run tests run:
+```
+make test
+```
 
 To compile and run execute:
 
