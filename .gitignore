@@ -16,3 +16,5 @@
 # Ignore distribution dir/file
 dist/
 
+# Ignore test tmp files
+*.tmp
