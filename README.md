@@ -22,5 +22,5 @@ To execute with non-standard parameters run:
 
 To compile and run execute:
 
-`make build
-dist/simulator`
+```make build
+dist/simulator```
