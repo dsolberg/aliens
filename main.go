@@ -14,14 +14,6 @@ const alienName = "Bob"
 
 const moveLimit = 10000
 
-func gatherCliParameters() (total_aliens int) {
-
-	// Import the CLI parameters
-	flag.IntVar(&total_aliens, "aliens", 2000, "Total aliens to create")
-	flag.Parse()
-
-	return
-}
 
 func loadCityMap() map[string]map[string]string {
 	// Assertion - City map will always be in the format described in the challenge document including spacing and ='s'
@@ -227,7 +219,12 @@ func printResults(report string, aliens map[string]string, city_map map[string]m
 
 func main() {
 
-	total_aliens := gatherCliParameters()
+	var total_aliens int
+	
+	// Import the CLI parameters
+	flag.IntVar(&total_aliens, "aliens", 2000, "Total aliens to create")
+	flag.Parse()
+
 	city_map := loadCityMap()
 
 	aliens := createAliens(total_aliens, city_map)
