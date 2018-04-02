@@ -23,7 +23,7 @@ var total_aliens int
 func gatherCliParameters() {
 
 	// Import the CLI parameters
-	flag.IntVar(&total_aliens, "aliens", 10000, "Total aliens to create")
+	flag.IntVar(&total_aliens, "aliens", 2000, "Total aliens to create")
 	flag.Parse()
 }
 
@@ -102,85 +102,83 @@ func moveAliens() {
 	}
 }
 
-func fightAliens() {
+func blowUpSameCityAliens(alien1Str string) {
 
-	// Alien gets up in the morning, has some eggs, loads his rifle and goes to find another alien
-	for alien1Str, _ := range aliens {
+	// Check to see if city has blown up other aliens
+	for alienBlasted, _ := range aliens {
 
-		// Make sure the first alien is not already blasted
-		if _, notBlasted1 := aliens[alien1Str]; notBlasted1 {
+		// Cond 1: Ensure the other aliens are not already blown up
+		// Cond 2: Check to see if the other alien is not just the attacker
+		// Cond 3: Detecting an alien in the same city	
 
-			// Attack alien begins to look for second alien to compare
-			for alien2Str, _ := range aliens {
+		_, notBlasted := aliens[alienBlasted];
+		if (notBlasted) && (alien1Str != alienBlasted) && (aliens[alien1Str] == aliens[alienBlasted]) {
 
-				// Make sure the second alien is not already blasted
-				if _, notBlasted2 := aliens[alien2Str]; notBlasted2 {
+			// Destroying alien found in the city
+			fmt.Println(" - " + alienBlasted + " exploded in the crossfire at " + aliens[alienBlasted])
+			delete(aliens, alienBlasted)
+		}
+	}
+}
 
-					// Avoid alien tendencies to attack themselves when they see their reflection in a shiney surface
-					if alien1Str != alien2Str {
+func blowUpDestroyedCityRoutes(alien1Str string) {
 
-						// Check if aliens are in the same city
-						if aliens[alien1Str] == aliens[alien2Str] {
+	// Obtain every alive city connected to city blowing up
+	for _, aliveCity := range city_map[aliens[alien1Str]] {
 
-							// Aliens are in the same city!
-							fmt.Println("Match: " + alien1Str + " vs " + alien2Str + " in " + aliens[alien1Str] + " - Result: all destroyed")
+		// Obtain every route in the connected cities
+		for deadRoute, deadCity := range city_map[aliveCity] {
 
-							// Attacker alien destroys his target - pew pew
-							delete(aliens, alien2Str)
+			// Check if the route exists and if it does blow it up too
+			if aliens[alien1Str] == deadCity {
 
-							// Obtain every alive city connected to city blowing up
-							for _, aliveCity := range city_map[aliens[alien1Str]] {
+				// Exploding city blows up the route to connected
+				delete(city_map[aliveCity], deadRoute)
 
-								// Obtain every route in the connected cities
-								for deadRoute, deadCity := range city_map[aliveCity] {
-
-									// Check if the route exists and if it does blow it up too
-									if aliens[alien1Str] == deadCity {
-
-										// Exploding city blows up the route to connected
-										delete(city_map[aliveCity], deadRoute)
-
-									}
-								}
-							}
-
-							// City engages Samson Option and blows up the city so the aliens couldn't take it over
-							delete(city_map, aliens[alien1Str])
-
-							// Check to see if city has blown up other aliens
-							for alienBlasted, _ := range aliens {
-
-								// Ensure the other aliens are not already blown up
-								if _, notBlasted := aliens[alienBlasted]; notBlasted {
-
-									// Check to see if the other alien is not just the attacker
-									if alien1Str != alienBlasted {
-
-										// Detecting an alien in the same city
-										if aliens[alien1Str] == aliens[alienBlasted] {
-
-											// Destroying alien found in the city
-											fmt.Println(" - " + alienBlasted + " exploded in the crossfire at " + aliens[alienBlasted])
-											delete(aliens, alienBlasted)
-										}
-									}
-								}
-							}
-
-							// Attacker alien dies in the blast
-							delete(aliens, alien1Str)
-
-							fmt.Println()
-
-							// Stop comparing with this city since it and all occupants are now destroyed
-							break
-						}
-					}
-				}
 			}
 		}
 	}
 }
+
+func attackSequence(alien1Str string) {
+
+	// Attack alien begins to look for second alien to compare
+	for alien2Str, _ := range aliens {
+
+		_, notBlasted2 := aliens[alien2Str]
+		
+		// Cond 1: Make sure the second alien is not already blasted
+		// Cond 2: Avoid alien tendencies to attack themselves when they see their reflection in a shiney surface
+		// Cond 3: Check if aliens are in the same city
+
+		if ((notBlasted2) && (alien1Str != alien2Str) && (aliens[alien1Str] == aliens[alien2Str])) {
+		
+			// Aliens are in the same city!
+			fmt.Println("Match: " + alien1Str + " vs " + alien2Str + " in " + aliens[alien1Str] + " - Result: all destroyed")
+
+			// Attacker alien destroys his target - pew pew
+			delete(aliens, alien2Str)
+
+			// Blow up the routes to the destroyed city
+			blowUpDestroyedCityRoutes(alien1Str) 
+
+			// City engages Samson Option and blows up the city so the aliens couldn't take it over
+			delete(city_map, aliens[alien1Str])
+
+			// Every alien in the city explodes!
+			blowUpSameCityAliens(alien1Str)
+
+			// Attacker alien dies in the blast
+			delete(aliens, alien1Str)
+
+			fmt.Println()
+
+			// Stop comparing with this city since it and all occupants are now destroyed
+			break
+		}
+	}
+}
+
 
 func printResults(report string) {
 	if report == "cities" {
@@ -224,8 +222,18 @@ func main() {
 	// Begin alien invasion
 	for tick := 0; tick < moveLimit; tick++ {
 		moveAliens()
-		fightAliens()
 
+		// Cycle through each alien
+		for alien1Str, _ := range aliens {
+
+			// Make sure the first alien is not already blasted
+			if _, notBlasted1 := aliens[alien1Str]; notBlasted1 {
+
+				// Find second alien to fight
+				attackSequence(alien1Str)
+			}
+		}
+		
 		fmt.Print("Total Aliens Alive: ")
 		fmt.Println(len(aliens))
 
