@@ -14,23 +14,21 @@ const alienName = "Bob"
 
 const moveLimit = 10000
 
-var city_map = map[string]map[string]string{}
-
-var aliens = map[string]string{}
-
-var total_aliens int
-
-func gatherCliParameters() {
+func gatherCliParameters() (total_aliens int) {
 
 	// Import the CLI parameters
 	flag.IntVar(&total_aliens, "aliens", 2000, "Total aliens to create")
 	flag.Parse()
+
+	return
 }
 
-func loadCityMap() {
+func loadCityMap() map[string]map[string]string {
 	// Assertion - City map will always be in the format described in the challenge document including spacing and ='s'
 
 	// Open and read city map line at a time
+	var city_map = map[string]map[string]string{}
+
 	file, err := os.Open("maps/fullcitymap.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -71,9 +69,13 @@ func loadCityMap() {
 
 		}
 	}
+
+	return city_map
 }
 
-func createAliens() {
+func createAliens(total_aliens int, city_map map[string]map[string]string) map[string]string {
+
+	var aliens = map[string]string{}
 
 	// Cycle through the total number of aliens
 	for i := 0; i < total_aliens; i++ {
@@ -85,9 +87,11 @@ func createAliens() {
 			aliens[alienName+strconv.Itoa(i)] = city
 		}
 	}
+
+	return aliens
 }
 
-func moveAliens() {
+func moveAliens(aliens map[string]string, city_map map[string]map[string]string) map[string]string {
 
 	// Get every living alien
 	for alien, _ := range aliens {
@@ -100,18 +104,20 @@ func moveAliens() {
 			break
 		}
 	}
+
+	return aliens
 }
 
-func blowUpSameCityAliens(alien1Str string) {
+func blowUpSameCityAliens(alien1Str string, aliens map[string]string) map[string]string {
 
 	// Check to see if city has blown up other aliens
 	for alienBlasted, _ := range aliens {
 
 		// Cond 1: Ensure the other aliens are not already blown up
 		// Cond 2: Check to see if the other alien is not just the attacker
-		// Cond 3: Detecting an alien in the same city	
+		// Cond 3: Detecting an alien in the same city
 
-		_, notBlasted := aliens[alienBlasted];
+		_, notBlasted := aliens[alienBlasted]
 		if (notBlasted) && (alien1Str != alienBlasted) && (aliens[alien1Str] == aliens[alienBlasted]) {
 
 			// Destroying alien found in the city
@@ -119,9 +125,11 @@ func blowUpSameCityAliens(alien1Str string) {
 			delete(aliens, alienBlasted)
 		}
 	}
+
+	return aliens
 }
 
-func blowUpDestroyedCityRoutes(alien1Str string) {
+func blowUpDestroyedCityRoutes(alien1Str string, aliens map[string]string, city_map map[string]map[string]string) (map[string]string, map[string]map[string]string) {
 
 	// Obtain every alive city connected to city blowing up
 	for _, aliveCity := range city_map[aliens[alien1Str]] {
@@ -138,21 +146,23 @@ func blowUpDestroyedCityRoutes(alien1Str string) {
 			}
 		}
 	}
+
+	return aliens, city_map
 }
 
-func attackSequence(alien1Str string) {
+func attackSequence(alien1Str string, aliens map[string]string, city_map map[string]map[string]string) (map[string]string, map[string]map[string]string) {
 
 	// Attack alien begins to look for second alien to compare
 	for alien2Str, _ := range aliens {
 
 		_, notBlasted2 := aliens[alien2Str]
-		
+
 		// Cond 1: Make sure the second alien is not already blasted
 		// Cond 2: Avoid alien tendencies to attack themselves when they see their reflection in a shiney surface
 		// Cond 3: Check if aliens are in the same city
 
-		if ((notBlasted2) && (alien1Str != alien2Str) && (aliens[alien1Str] == aliens[alien2Str])) {
-		
+		if (notBlasted2) && (alien1Str != alien2Str) && (aliens[alien1Str] == aliens[alien2Str]) {
+
 			// Aliens are in the same city!
 			fmt.Println("Match: " + alien1Str + " vs " + alien2Str + " in " + aliens[alien1Str] + " - Result: all destroyed")
 
@@ -160,13 +170,13 @@ func attackSequence(alien1Str string) {
 			delete(aliens, alien2Str)
 
 			// Blow up the routes to the destroyed city
-			blowUpDestroyedCityRoutes(alien1Str) 
+			aliens, city_map = blowUpDestroyedCityRoutes(alien1Str, aliens, city_map)
 
 			// City engages Samson Option and blows up the city so the aliens couldn't take it over
 			delete(city_map, aliens[alien1Str])
 
 			// Every alien in the city explodes!
-			blowUpSameCityAliens(alien1Str)
+			aliens = blowUpSameCityAliens(alien1Str, aliens)
 
 			// Attacker alien dies in the blast
 			delete(aliens, alien1Str)
@@ -177,10 +187,11 @@ func attackSequence(alien1Str string) {
 			break
 		}
 	}
+
+	return aliens, city_map
 }
 
-
-func printResults(report string) {
+func printResults(report string, aliens map[string]string, city_map map[string]map[string]string) {
 	if report == "cities" {
 
 		// Obtain every city alive
@@ -210,18 +221,20 @@ func printResults(report string) {
 			fmt.Println(alienLine)
 		}
 	}
-}
 
+	return
+}
 
 func main() {
 
-	gatherCliParameters()
-	loadCityMap()
-	createAliens()
+	total_aliens := gatherCliParameters()
+	city_map := loadCityMap()
+
+	aliens := createAliens(total_aliens, city_map)
 
 	// Begin alien invasion
 	for tick := 0; tick < moveLimit; tick++ {
-		moveAliens()
+		aliens := moveAliens(aliens, city_map)
 
 		// Cycle through each alien
 		for alien1Str, _ := range aliens {
@@ -230,10 +243,10 @@ func main() {
 			if _, notBlasted1 := aliens[alien1Str]; notBlasted1 {
 
 				// Find second alien to fight
-				attackSequence(alien1Str)
+				attackSequence(alien1Str, aliens, city_map)
 			}
 		}
-		
+
 		fmt.Print("Total Aliens Alive: ")
 		fmt.Println(len(aliens))
 
@@ -249,10 +262,10 @@ func main() {
 		}
 	}
 
-	printResults("cities")
+	printResults("cities", aliens, city_map)
 
 	if len(aliens) != 0 {
-		printResults("aliens")
+		printResults("aliens", aliens, city_map)
 	}
 
 }
