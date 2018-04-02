@@ -17,7 +17,7 @@ go get -u github.com/dsolberg/aliens
 To get to the local code:
 ```
 cd $GOPATH/src/github.com/dsolberg/aliens
-git checkout tags/1.0.1
+git checkout tags/1.5.0
 ```
 
 To execute with the default parameters of 2000 aliens run:
